@@ -1,0 +1,6 @@
+2026-10-20 09:00:01 INFO Service started
+2026-10-20 09:01:14 WARNING Failed login for demo-user
+2026-10-20 09:02:10 INFO Health check passed
+2026-10-20 09:03:44 ERROR Sample database connection failure
+2026-10-20 09:04:02 DEBUG Retrying connection
+2026-10-20 09:04:20 INFO Connection restored
