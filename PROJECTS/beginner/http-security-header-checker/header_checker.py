@@ -68,16 +68,24 @@ def inspect_headers(url: str) -> dict:
             status, counted = "INFO", False
             note = "HSTS is meaningful only when delivered over HTTPS."
             tip = "The final response was not HTTPS. Check HTTPS configuration before assessing HSTS."
-        elif value and name == "X-Content-Type-Options" and value.lower() != "nosniff":
-            status = "REVIEW"
-        elif value and name in {"Content-Security-Policy", "X-Frame-Options"}:
-            status = "REVIEW"
-            if name == "Content-Security-Policy":
-                note = "A CSP header exists, but its directives need review to judge how restrictive it is."
+
+        elif value and name == "X-Content-Type-Options":
+            if value.lower() != "nosniff":
+                status = "REVIEW"
+                note = "The header is present, but its value is not the expected nosniff value."
+
+        elif value and name == "X-Frame-Options":
+            if value.strip().lower() not in {"deny", "sameorigin"}:
+                status = "REVIEW"
+                note = "The X-Frame-Options value is not a recognized standard value."
+
+        elif value and name == "Content-Security-Policy":
+            note = "The CSP header is present, but its directives are not automatically validated."
+            tip = "Review the directives to ensure they suit the application and avoid unnecessarily broad sources."
 
         if counted:
             possible += 1
-            if status in {"PRESENT", "REVIEW"}:
+            if status == "PRESENT":
                 score += 1
 
         results.append({
