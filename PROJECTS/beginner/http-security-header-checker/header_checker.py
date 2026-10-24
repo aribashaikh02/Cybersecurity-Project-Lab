@@ -25,9 +25,9 @@ HEADER_RULES = [
     ("Referrer-Policy", "Controls how much referrer information browsers send.",
      "Choose a policy that fits privacy and application requirements; `strict-origin-when-cross-origin` is a common starting point.", True),
     ("Permissions-Policy", "Controls access to selected browser features, depending on browser support.",
-     "Restrict features the application does not need. The correct policy depends on the app.", False),
+     "Restrict features the application does not need. The correct policy depends on the app.", True),
     ("Cross-Origin-Opener-Policy", "Can isolate a browsing context group and reduce some cross-origin interactions.",
-     "Review whether `same-origin` or another value fits authentication, popup, and integration flows.", False),
+     "Review whether `same-origin` or another value fits authentication, popup, and integration flows.", True),
 ]
 
 
