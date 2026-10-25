@@ -83,6 +83,51 @@ def inspect_headers(url: str) -> dict:
             note = "The CSP header is present, but its directives are not automatically validated."
             tip = "Review the directives to ensure they suit the application and avoid unnecessarily broad sources."
 
+        elif value and name == "Strict-Transport-Security":
+            directives = [part.strip().lower() for part in value.split(";")]
+            max_age_values = [
+                part.split("=", 1)[1].strip()
+                for part in directives
+                if part.startswith("max-age=")
+            ]
+
+            if len(max_age_values) != 1 or not max_age_values[0].isdigit():
+                status = "REVIEW"
+                note = "The HSTS header is present, but its max-age directive is missing or invalid."
+
+        elif value and name == "Referrer-Policy":
+            valid_policies = {
+                "no-referrer",
+                "no-referrer-when-downgrade",
+                "origin",
+                "origin-when-cross-origin",
+                "same-origin",
+                "strict-origin",
+                "strict-origin-when-cross-origin",
+                "unsafe-url",
+            }
+            policies = [part.strip().lower() for part in value.split(",")]
+
+            if not any(policy in valid_policies for policy in policies):
+                status = "REVIEW"
+                note = "No recognized Referrer-Policy value was found."
+
+        elif value and name == "Cross-Origin-Opener-Policy":
+            valid_policies = {
+                "unsafe-none",
+                "same-origin-allow-popups",
+                "same-origin",
+                "noopener-allow-popups",
+            }
+            policy = value.strip().lower()
+
+            if policy not in valid_policies:
+                status = "REVIEW"
+                note = "The Cross-Origin-Opener-Policy value is not recognized."
+
+            note = "The CSP header is present, but its directives are not automatically validated."
+            tip = "Review the directives to ensure they suit the application and avoid unnecessarily broad sources."
+
         if counted:
             possible += 1
             if status == "PRESENT":

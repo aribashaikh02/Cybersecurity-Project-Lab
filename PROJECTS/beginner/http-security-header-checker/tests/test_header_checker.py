@@ -127,6 +127,116 @@ class HeaderScoringTests(unittest.TestCase):
         self.assertEqual(report["checklist_score"], 1)
         self.assertEqual(report["checklist_possible"], 7)
 
+    @patch("header_checker.requests.get")
+    def test_valid_hsts_max_age_is_present(self, mock_get):
+        response = Mock()
+        response.url = "https://example.com/"
+        response.status_code = 200
+        response.history = []
+        response.headers = {"Strict-Transport-Security": "max-age=31536000"}
+        mock_get.return_value = response
+
+        report = inspect_headers("https://example.com")
+        result = next(
+            item
+            for item in report["headers"]
+            if item["header"] == "Strict-Transport-Security"
+        )
+
+        self.assertEqual(result["status"], "PRESENT")
+        self.assertEqual(report["checklist_score"], 1)
+
+    @patch("header_checker.requests.get")
+    def test_invalid_hsts_max_age_needs_review(self, mock_get):
+        response = Mock()
+        response.url = "https://example.com/"
+        response.status_code = 200
+        response.history = []
+        response.headers = {"Strict-Transport-Security": "max-age=abc"}
+        mock_get.return_value = response
+
+        report = inspect_headers("https://example.com")
+        result = next(
+            item
+            for item in report["headers"]
+            if item["header"] == "Strict-Transport-Security"
+        )
+
+        self.assertEqual(result["status"], "REVIEW")
+        self.assertEqual(report["checklist_score"], 0)
+
+    @patch("header_checker.requests.get")
+    def test_valid_referrer_policy_is_present(self, mock_get):
+        response = Mock()
+        response.url = "https://example.com/"
+        response.status_code = 200
+        response.history = []
+        response.headers = {"Referrer-Policy": "strict-origin-when-cross-origin"}
+        mock_get.return_value = response
+
+        report = inspect_headers("https://example.com")
+        result = next(
+            item for item in report["headers"] if item["header"] == "Referrer-Policy"
+        )
+
+        self.assertEqual(result["status"], "PRESENT")
+        self.assertEqual(report["checklist_score"], 1)
+
+    @patch("header_checker.requests.get")
+    def test_invalid_referrer_policy_needs_review(self, mock_get):
+        response = Mock()
+        response.url = "https://example.com/"
+        response.status_code = 200
+        response.history = []
+        response.headers = {"Referrer-Policy": "not-a-policy"}
+        mock_get.return_value = response
+
+        report = inspect_headers("https://example.com")
+        result = next(
+            item for item in report["headers"] if item["header"] == "Referrer-Policy"
+        )
+
+        self.assertEqual(result["status"], "REVIEW")
+        self.assertEqual(report["checklist_score"], 0)
+
+    @patch("header_checker.requests.get")
+    def test_valid_coop_policy_is_present(self, mock_get):
+        response = Mock()
+        response.url = "https://example.com/"
+        response.status_code = 200
+        response.history = []
+        response.headers = {"Cross-Origin-Opener-Policy": "same-origin"}
+        mock_get.return_value = response
+
+        report = inspect_headers("https://example.com")
+        result = next(
+            item
+            for item in report["headers"]
+            if item["header"] == "Cross-Origin-Opener-Policy"
+        )
+
+        self.assertEqual(result["status"], "PRESENT")
+        self.assertEqual(report["checklist_score"], 1)
+
+    @patch("header_checker.requests.get")
+    def test_invalid_coop_policy_needs_review(self, mock_get):
+        response = Mock()
+        response.url = "https://example.com/"
+        response.status_code = 200
+        response.history = []
+        response.headers = {"Cross-Origin-Opener-Policy": "invalid"}
+        mock_get.return_value = response
+
+        report = inspect_headers("https://example.com")
+        result = next(
+            item
+            for item in report["headers"]
+            if item["header"] == "Cross-Origin-Opener-Policy"
+        )
+
+        self.assertEqual(result["status"], "REVIEW")
+        self.assertEqual(report["checklist_score"], 0)
+
     def test_all_seven_rules_are_included_in_score(self):
         self.assertEqual(len(HEADER_RULES), 7)
         self.assertTrue(all(rule[3] for rule in HEADER_RULES))
